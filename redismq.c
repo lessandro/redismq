@@ -1,16 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <signal.h>
 #include <ev.h>
 #include <hiredis/hiredis.h>
 #include <hiredis/async.h>
 #include <hiredis/adapters/libev.h>
 #include "redismq.h"
 
-static void get_next_item(redisAsyncContext *);
+static void rmq_send_blpop(redisAsyncContext *);
+static void rmq_connect(rmq_config *cfg);
 
-static void on_command(redisAsyncContext *ctx, void *r, void *privdata)
+static void rmq_command_cb(redisAsyncContext *ctx, void *r, void *privdata)
 {
     redisReply *reply = (redisReply*)r;
     if (reply == NULL)
@@ -22,44 +21,74 @@ static void on_command(redisAsyncContext *ctx, void *r, void *privdata)
     if (reply->elements != 2)
         return;
 
-    rmq_config *config = (rmq_config*)ctx->data;
-    config->fn(reply->element[1]->str);
+    rmq_config *cfg = (rmq_config*)ctx->data;
+    cfg->fn(reply->element[1]->str);
 
-    get_next_item(ctx);
+    rmq_send_blpop(ctx);
 }
 
-static void get_next_item(redisAsyncContext *ctx)
+static void rmq_send_blpop(redisAsyncContext *ctx)
 {
-    rmq_config *config = (rmq_config*)ctx->data;
-    redisAsyncCommand(ctx, NULL, NULL, "SELECT %d", config->redis_db);
-    redisAsyncCommand(ctx, on_command, NULL, "BLPOP %s 0", config->key);
+    rmq_config *cfg = (rmq_config*)ctx->data;
+    redisAsyncCommand(ctx, rmq_command_cb, NULL, "BLPOP %s 0", cfg->key);
 }
 
-static void on_connect(const redisAsyncContext *ctx, int status)
+static void rmq_timer_cb(EV_P_ struct ev_timer *w, int revents)
 {
-    if (status != REDIS_OK) {
-        printf("Error: %s\n", ctx->errstr);
+    void *data = w->data;
+    free(w);
+    rmq_connect(data);
+}
+
+static void rmq_connect_wait(rmq_config *cfg)
+{
+    struct ev_timer *timer = malloc(sizeof(struct ev_timer));
+    ev_timer_init(timer, rmq_timer_cb, 1., 0.);
+
+    timer->data = cfg;
+
+    ev_timer_start(EV_DEFAULT_ timer);
+}
+
+static void rmq_connect_cb(const redisAsyncContext *ctx, int status)
+{
+    if (status == REDIS_OK)
+        return;
+
+    printf("redis: %s\n", ctx->errstr);
+    rmq_connect_wait(ctx->data);
+}
+
+static void rmq_disconnect_cb(const redisAsyncContext *ctx, int status)
+{
+    if (ctx->errstr)
+        printf("redis: %s\n", ctx->errstr);
+
+    rmq_connect(ctx->data);
+}
+
+static void rmq_connect(rmq_config *cfg)
+{
+    redisAsyncContext *ctx = redisAsyncConnect(
+        cfg->redis_host,
+        cfg->redis_port);
+
+    if (ctx->err) {
+        rmq_connect_wait(cfg);
         return;
     }
-    printf("Connected...\n");
-}
 
-static void on_disconnect(const redisAsyncContext *ctx, int status)
-{
-    if (status != REDIS_OK) {
-        printf("Error: %s\n", ctx->errstr);
-        return;
-    }
-    printf("Disconnected...\n");
-}
+    ctx->data = (void*)cfg;
 
-void rmq_blpop(struct rmq_config *config)
-{
-    redisAsyncContext *ctx;
-    ctx = redisAsyncConnect(config->redis_host, config->redis_port);
-    ctx->data = (void*)config;
     redisLibevAttach(EV_DEFAULT_ ctx);
-    redisAsyncSetConnectCallback(ctx, on_connect);
-    redisAsyncSetDisconnectCallback(ctx, on_disconnect);
-    get_next_item(ctx);
+    redisAsyncSetConnectCallback(ctx, rmq_connect_cb);
+    redisAsyncSetDisconnectCallback(ctx, rmq_disconnect_cb);
+    redisAsyncCommand(ctx, NULL, NULL, "SELECT %d", cfg->redis_db);
+
+    rmq_send_blpop(ctx);
+}
+
+void rmq_blpop(rmq_config *cfg)
+{
+    rmq_connect(cfg);
 }

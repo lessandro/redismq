@@ -1,2 +1,2 @@
 all:
-	clang -Wall *.c -lhiredis -lev
+	clang -g -Wall *.c -lhiredis -lev
