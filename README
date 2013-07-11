@@ -1,0 +1,13 @@
+Yet another redis message queue convenience library. This one is in C and uses
+libev.
+
+Goals:
+
+- libev
+- blpop/rpush message queue
+- never loses messages
+- all messages sent in order
+- automatically and transparently reconnects in case of disconnection
+- C98, switch to C++11 possible though
+- MIT license
+- pet throwaway project, don't take it seriously.
