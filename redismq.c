@@ -78,6 +78,7 @@ static void rmq_connect(rmq_config *cfg)
         return;
     }
 
+    cfg->ctx = ctx;
     ctx->data = (void*)cfg;
 
     redisLibevAttach(EV_DEFAULT_ ctx);
@@ -91,4 +92,11 @@ static void rmq_connect(rmq_config *cfg)
 void rmq_blpop(rmq_config *cfg)
 {
     rmq_connect(cfg);
+}
+
+void rmq_rpush(rmq_config *cfg, char *msg)
+{
+    if (!cfg->ctx) {
+        rmq_connect(cfg);
+    }
 }
