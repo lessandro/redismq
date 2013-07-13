@@ -11,7 +11,7 @@
 static void rmq_send_blpop(struct rmq_context*);
 static void rmq_connect(struct rmq_context*);
 
-static void rmq_command_cb(redisAsyncContext *redis_ctx, void *r, void *privdata)
+static void rmq_command_cb(redisAsyncContext *redis_ctx, void *r, void *data)
 {
     redisReply *reply = (redisReply*)r;
     if (reply == NULL)
@@ -122,6 +122,8 @@ void rmq_rpush(struct rmq_context *ctx, char *message)
     msg->message = message;
 
     STAILQ_INSERT_TAIL(&ctx->head, msg, entries);
+
+    // TODO: the rest of this function
 }
 
 void rmq_init(struct rmq_context *ctx, char *redis_host, int redis_port,

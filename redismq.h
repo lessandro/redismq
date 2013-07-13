@@ -22,11 +22,11 @@ struct rmq_context {
     int redis_port;
     int redis_db;
 
-    // pointer to redis context
-    void *redis_ctx;
-
     // redis key
     char *key;
+
+    // pointer to redis context
+    void *redis_ctx;
 
     // callback for blpop
     rmq_callback *blpop_cb;

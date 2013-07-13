@@ -19,14 +19,13 @@ static void blpop_cb(char *msg)
     printf("received: %s\n", msg);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     signal(SIGPIPE, SIG_IGN);
 
     // rpush timer
 
     struct rmq_context push;
-
     rmq_init(&push, REDIS_HOST, REDIS_PORT, REDIS_DB, KEY);
 
     struct ev_timer timer;
@@ -39,6 +38,8 @@ int main()
     struct rmq_context pop;
     rmq_init(&pop, REDIS_HOST, REDIS_PORT, REDIS_DB, KEY);
     rmq_blpop(&pop, blpop_cb);
+
+    // start libev event loop
 
     ev_loop(EV_DEFAULT_ 0);
 
