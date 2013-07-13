@@ -3,6 +3,7 @@
 
 #include <sys/queue.h>
 
+#define RMQ_NONE 0
 #define RMQ_BLPOP 1
 #define RMQ_RPUSH 2
 
@@ -18,15 +19,16 @@ struct rmq_context {
     int type;
 
     // redis config
-    char *redis_host;
+    const char *redis_host;
     int redis_port;
     int redis_db;
 
     // redis key
-    char *key;
+    const char *key;
 
     // pointer to redis context
     void *redis_ctx;
+    int connected;
 
     // callback for blpop
     rmq_callback *blpop_cb;
@@ -35,11 +37,11 @@ struct rmq_context {
     STAILQ_HEAD(rmq_message_head, rmq_message) head;
 };
 
-void rmq_init(struct rmq_context *ctx, char *redis_host, int redis_port,
-    int redis_db, char *key);
+void rmq_init(struct rmq_context *ctx, const char *redis_host, int redis_port,
+    int redis_db, const char *key);
 
 void rmq_blpop(struct rmq_context *ctx, rmq_callback *blpop_cb);
 
-void rmq_rpush(struct rmq_context *ctx, char *message);
+void rmq_rpush(struct rmq_context *ctx, const char *message);
 
 #endif

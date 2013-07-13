@@ -8,10 +8,15 @@
 #define REDIS_DB 0
 #define KEY "list"
 
-static void timer_cb(EV_P_ struct ev_timer *w, int revents)
+static int n = 0;
+
+static void timer_cb(EV_P_ struct ev_timer *timer, int revents)
 {
-    printf("sending...\n");
-    rmq_rpush(w->data, "test");
+    char str[10];
+    sprintf(str, "test %d", n++);
+
+    printf("sending %s\n", str);
+    rmq_rpush(timer->data, str);
 }
 
 static void blpop_cb(char *msg)
@@ -29,7 +34,7 @@ int main(int argc, char *argv[])
     rmq_init(&push, REDIS_HOST, REDIS_PORT, REDIS_DB, KEY);
 
     struct ev_timer timer;
-    ev_timer_init(&timer, timer_cb, 0., 1.);
+    ev_timer_init(&timer, timer_cb, 0., .4);
     timer.data = &push;
     ev_timer_start(EV_DEFAULT_ &timer);
 
