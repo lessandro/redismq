@@ -44,7 +44,7 @@ static void timer_cb(EV_P_ struct ev_timer *timer, int revents)
     rmq_rpush(timer->data, str);
 }
 
-static void blpop_cb(char *msg)
+static void blpop_cb(const char *msg)
 {
     printf("received: %s\n", msg);
 }
