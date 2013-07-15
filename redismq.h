@@ -69,4 +69,6 @@ void rmq_blpop(struct rmq_context *ctx, rmq_callback *blpop_cb);
 
 void rmq_rpush(struct rmq_context *ctx, const char *message);
 
+void rmq_rpushf(struct rmq_context *ctx, const char *format, ...);
+
 #endif

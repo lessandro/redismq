@@ -37,11 +37,9 @@ static int n = 0;
 
 static void timer_cb(EV_P_ struct ev_timer *timer, int revents)
 {
-    char str[10];
-    sprintf(str, "test %d", n++);
+    printf("sending %d\n", n);
 
-    printf("sending %s\n", str);
-    rmq_rpush(timer->data, str);
+    rmq_rpushf(timer->data, "test %d", n++);
 }
 
 static void blpop_cb(const char *msg)

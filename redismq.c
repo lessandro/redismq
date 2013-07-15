@@ -25,6 +25,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ev.h>
@@ -209,6 +210,17 @@ void rmq_rpush(struct rmq_context *ctx, const char *message)
 
     if (ctx->connected)
         rmq_rpush_message(ctx, msg);
+}
+
+void rmq_rpushf(struct rmq_context *ctx, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    char *buf;
+    vasprintf(&buf, format, args);
+    rmq_rpush(ctx, buf);
+    free(buf);
+    va_end(args);
 }
 
 void rmq_init(struct rmq_context *ctx, const char *redis_host, int redis_port,
