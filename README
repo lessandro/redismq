@@ -8,5 +8,5 @@ Goals:
 - never loses messages
 - all messages sent in order
 - automatically and transparently reconnects in case of disconnection
-- C98
+- C99
 - BSD 2-clause license
