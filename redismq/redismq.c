@@ -23,6 +23,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// for vasprintf / strdup
+#define _GNU_SOURCE 1
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdarg.h>
