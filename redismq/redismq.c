@@ -37,6 +37,10 @@
 #include <hiredis/adapters/libev.h>
 #include "redismq.h"
 
+#if HIREDIS_MAJOR == 0 && HIREDIS_MINOR < 11
+#error hiredis >= 0.11 required
+#endif
+
 // message
 
 struct rmq_message *rmq_message_new(const char *message)
