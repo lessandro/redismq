@@ -26,7 +26,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <ev.h>
-#include "redismq.h"
+#include "../redismq/redismq.h"
 
 #define REDIS_HOST "127.0.0.1"
 #define REDIS_PORT 6379
