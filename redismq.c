@@ -234,10 +234,10 @@ void rmq_init(struct rmq_context *ctx, const char *redis_host, int redis_port,
     int redis_db, const char *key)
 {
     ctx->type = RMQ_NONE;
-    ctx->redis_host = redis_host;
+    ctx->redis_host = strdup(redis_host);
     ctx->redis_port = redis_port;
     ctx->redis_db = redis_db;
-    ctx->key = key;
+    ctx->key = strdup(key);
     ctx->redis_ctx = NULL;
     ctx->connected = 0;
 }
