@@ -32,10 +32,11 @@
 #define RMQ_BLPOP 1
 #define RMQ_RPUSH 2
 
-typedef void (rmq_callback)(const char *message);
+typedef void (rmq_callback)(char *message);
 
 struct rmq_message {
     char *message;
+
     STAILQ_ENTRY(rmq_message) entries;
 };
 
